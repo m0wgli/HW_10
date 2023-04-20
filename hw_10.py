@@ -1,27 +1,6 @@
 from collections import UserDict
 
 
-class Field:
-    def __init__(self, value=None):
-        self.value = value
-
-
-class AddressBook(UserDict):
-    def __init__(self):
-        self.contacts = {}
-
-
-class Record:
-    class Name:
-        pass
-
-    class Phone:
-        pass
-
-
-# contacts = {}
-
-
 def input_error(func):
     def inner(*args):
         try:
@@ -35,26 +14,64 @@ def input_error(func):
     return inner
 
 
+class Field:
+    def __init__(self, value=None):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+
+class Name(Field):
+    pass
+
+
+class Phone(Field):
+    pass
+
+
+class Record:
+    def __init__(self, name):
+        self.name = name
+        self.phones = []
+
+    def add_phone(self, phone):
+        self.phones.append(phone)
+
+    def change_phone(self, index, phone):
+        self.phones[index] = phone
+
+    def delete_phone(self, phone):
+        self.phones.remove(phone)
+
+
+class AddressBook(UserDict):
+
+    def add_record(self, record):
+        name = record.name.value
+        self.data[name] = record
+
+
+contacts = AddressBook()
+
+
 def help(*args):
-    return '''"hello", відповідає у консоль "How can I help you?"
-"add ...". За цією командою бот зберігає у пам'яті (у словнику наприклад) новий контакт. Замість ... користувач вводить ім'я та номер телефону, обов'язково через пробіл.
-"change ..." За цією командою бот зберігає в пам'яті новий номер телефону існуючого контакту. Замість ... користувач вводить ім'я та номер телефону, обов'язково через пробіл.
-"phone ...." За цією командою бот виводить у консоль номер телефону для зазначеного контакту. Замість ... користувач вводить ім'я контакту, чий номер треба показати.
-"show all". За цією командою бот виводить всі збереженні контакти з номерами телефонів у консоль.
-"good bye", "close", "exit" по будь-якій з цих команд бот завершує свою роботу після того, як виведе у консоль "Good bye!".'''
+    return '''
+    "hello", відповідає у консоль "How can I help you?"
 
+    "add ...". За цією командою бот зберігає у пам'яті (у словнику наприклад) новий контакт. Замість ... 
+користувач вводить ім'я та номер телефону, обов'язково через пробіл.
 
-@input_error
-def add(*args):
-    list_of_param = args[0].split()
-    name = list_of_param[1]
-    phone = list_of_param[2]
-    contacts[name] = phone
+    "change phone..." За цією командою бот зберігає в пам'яті новий номер телефону існуючого контакту. Замість ...
+ користувач вводить ім'я та номер телефону, обов'язково через пробіл.
 
-    if not phone:
-        raise IndexError()
+    "phone ...." За цією командою бот виводить у консоль номер телефону для зазначеного контакту. Замість ... 
+    користувач вводить ім'я контакту, чий номер треба показати.
 
-    return f'''name - {name}, phone - {phone}'''
+    "show all". За цією командою бот виводить всі збереженні контакти з номерами телефонів у консоль.
+
+    "good bye", "close", "exit" по будь-якій з цих команд бот завершує свою роботу після того, як виведе у консоль "Good bye!".
+    '''
 
 
 def hello(*args):
@@ -69,33 +86,38 @@ def no_command(*args):
     return '''Unknown command, try again'''
 
 
-@input_error
-def phone(*args):
-    list_of_param = args[0].split()
-    name = list_of_param[0]
-    return f'''{name} phone is {contacts[name]}'''
-
-
 def show_all(*args):
     return f'''{contacts}'''
 
 
 @input_error
-def change(*args):
+def add(*args):
     list_of_param = args[0].split()
-    name = list_of_param[0]
-    new_phone = list_of_param[1]
-    contacts.update({name: new_phone})
-    return f'''{name} new phone is {new_phone}'''
+    name = Name(list_of_param[1])
+    phone = Phone(list_of_param[2])
+    record = Record(name)
+    record.add_phone(phone)
+    contacts.add_record(record)
+    return f"Added <{name.value}> with phone <{phone.value}>"
+
+
+@input_error
+def phone(*args):
+    name = Name(args[0])
+    phone = Phone(args[1])
+    if contacts.get(name.value):
+        return contacts[phone]
+    return f'There are no phones with name {name}'
 
 
 COMMANDS = {help: 'help',
             add: 'add',
             exit: ['exit', 'close', 'good bye'],
             hello: 'hello',
-            change: 'change',
             phone: 'phone',
-            show_all: 'show all'
+            change: 'change',
+            show_all: 'show all',
+            show_phone_number: ' show phone'
             }
 
 
@@ -107,6 +129,7 @@ def command_handler(text):
         elif isinstance(kword, list):
             if text.strip().lower() in kword:
                 return command, None
+    return no_command, None
 
 
 def main():
