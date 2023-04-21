@@ -118,7 +118,6 @@ def add(*args):
 @input_error
 def phone(*args):
     name = Name(args[0])
-    # phone = Phone(args[1])
     rec = contacts.get(name.value)
     if rec:
         return rec.phones
