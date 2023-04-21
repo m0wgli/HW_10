@@ -20,6 +20,9 @@ class Field:
 
     def __str__(self):
         return str(self.value)
+    
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class Name(Field):
@@ -37,12 +40,17 @@ class Record:
 
     def add_phone(self, phone):
         self.phones.append(phone)
+        return f'Phone {phone} successfully added'
 
     def change_phone(self, index, phone):
         self.phones[index] = phone
+        return f'Phone {phone} successfully changed'
 
     def delete_phone(self, phone):
         self.phones.remove(phone)
+    
+    def __str__(self) -> str:
+        return f'{str(self.name)} {", ".join([str(p) for p in self.phones])}'
 
 
 class AddressBook(UserDict):
@@ -50,6 +58,9 @@ class AddressBook(UserDict):
     def add_record(self, record):
         name = record.name.value
         self.data[name] = record
+    
+    def show_all(self):
+        return '\n'.join([str(rec) for rec in self.data.values()])
 
 
 contacts = AddressBook()
@@ -87,7 +98,7 @@ def no_command(*args):
 
 
 def show_all(*args):
-    return f'''{contacts}'''
+    return contacts.show_all()
 
 
 @input_error
@@ -95,6 +106,9 @@ def add(*args):
     # list_of_param = args[0].split()
     name = Name(args[0])
     phone = Phone(args[1])
+    rec = contacts.get(str(name))
+    if rec:
+        return rec.add_phone(phone)
     record = Record(name, phone)
     # record.add_phone(phone)
     contacts.add_record(record)
@@ -104,15 +118,21 @@ def add(*args):
 @input_error
 def phone(*args):
     name = Name(args[0])
-    phone = Phone(args[1])
-    if contacts.get(name.value):
-        return contacts[phone]
+    # phone = Phone(args[1])
+    rec = contacts.get(name.value)
+    if rec:
+        return rec.phones
     return f'There are no phones with name {name}'
 
 
-def change():
-    ...
-
+def change(*args):
+    name = Name(args[0])
+    index = int(args[1])
+    new_phone = Phone(args[2])
+    rec = contacts.get(str(name))
+    if rec:
+        return rec.change_phone(index, new_phone)
+    return f'There are no phones with name {name}'
 
 def show_phone_number():
     ...
