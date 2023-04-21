@@ -21,6 +21,9 @@ class Field:
     def __str__(self):
         return str(self.value)
 
+    def __repr__(self):
+        return str(self.value)
+
 
 class Name(Field):
     pass
@@ -35,7 +38,13 @@ class Record:
         self.name = name
         self.phones = [phone] if phone else None
 
-    def add_phone(self, phone):
+    def __str__(self):
+        return str(self.phones)
+
+    def __repr__(self):
+        return str(self.phones)
+
+    def add_phone(self, phone: Phone):
         self.phones.append(phone)
 
     def change_phone(self, index, phone):
@@ -47,7 +56,7 @@ class Record:
 
 class AddressBook(UserDict):
 
-    def add_record(self, record):
+    def add_record(self, record: Record):
         name = record.name.value
         self.data[name] = record
 
@@ -62,7 +71,7 @@ def help(*args):
     "add ...". За цією командою бот зберігає у пам'яті (у словнику наприклад) новий контакт. Замість ... 
 користувач вводить ім'я та номер телефону, обов'язково через пробіл.
 
-    "change phone..." За цією командою бот зберігає в пам'яті новий номер телефону існуючого контакту. Замість ...
+    "change..." За цією командою бот зберігає в пам'яті новий номер телефону існуючого контакту. Замість ...
  користувач вводить ім'я та номер телефону, обов'язково через пробіл.
 
     "phone ...." За цією командою бот виводить у консоль номер телефону для зазначеного контакту. Замість ... 
@@ -71,6 +80,7 @@ def help(*args):
     "show all". За цією командою бот виводить всі збереженні контакти з номерами телефонів у консоль.
 
     "good bye", "close", "exit" по будь-якій з цих команд бот завершує свою роботу після того, як виведе у консоль "Good bye!".
+
     '''
 
 
@@ -79,7 +89,7 @@ def hello(*args):
 
 
 def exit(*args):
-    return '''Good Bye'''
+    return '''Good Bye!'''
 
 
 def no_command(*args):
@@ -87,16 +97,16 @@ def no_command(*args):
 
 
 def show_all(*args):
-    return f'''{contacts}'''
+    if contacts:
+        return '\n'.join([f'{name}: {phone}' for name, phone in contacts.items()])
+    return "You have no contacts yet"
 
 
 @input_error
 def add(*args):
-    # list_of_param = args[0].split()
     name = Name(args[0])
     phone = Phone(args[1])
     record = Record(name, phone)
-    # record.add_phone(phone)
     contacts.add_record(record)
     return f"Added <{name.value}> with phone <{phone.value}>"
 
@@ -107,15 +117,17 @@ def phone(*args):
     phone = Phone(args[1])
     if contacts.get(name.value):
         return contacts[phone]
-    return f'There are no phones with name {name}'
+    return f"No contact with name {name}"
 
 
-def change():
-    ...
+def change(*args):
+    name = Name(args[0])
+    new_phone = Phone(args[1])
+    if contacts.get(name.value):
+        contacts[name] = new_phone
+        return f"Phone number for contact {name} changed"
+    return f"No contact with name {name}"
 
-
-def show_phone_number():
-    ...
 
 COMMANDS = {help: 'help',
             add: 'add',
@@ -123,8 +135,7 @@ COMMANDS = {help: 'help',
             hello: 'hello',
             phone: 'phone',
             change: 'change',
-            show_all: 'show all',
-            show_phone_number: ' show phone'
+            show_all: 'show all'
             }
 
 
