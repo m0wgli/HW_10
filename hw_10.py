@@ -31,9 +31,9 @@ class Phone(Field):
 
 
 class Record:
-    def __init__(self, name):
+    def __init__(self, name, phone=None):
         self.name = name
-        self.phones = []
+        self.phones = [phone] if phone else None
 
     def add_phone(self, phone):
         self.phones.append(phone)
@@ -92,11 +92,11 @@ def show_all(*args):
 
 @input_error
 def add(*args):
-    list_of_param = args[0].split()
-    name = Name(list_of_param[1])
-    phone = Phone(list_of_param[2])
-    record = Record(name)
-    record.add_phone(phone)
+    # list_of_param = args[0].split()
+    name = Name(args[0])
+    phone = Phone(args[1])
+    record = Record(name, phone)
+    # record.add_phone(phone)
     contacts.add_record(record)
     return f"Added <{name.value}> with phone <{phone.value}>"
 
@@ -109,6 +109,13 @@ def phone(*args):
         return contacts[phone]
     return f'There are no phones with name {name}'
 
+
+def change():
+    ...
+
+
+def show_phone_number():
+    ...
 
 COMMANDS = {help: 'help',
             add: 'add',
@@ -125,7 +132,7 @@ def command_handler(text):
     for command, kword in COMMANDS.items():
         if isinstance(kword, str):
             if text.lower().startswith(kword):
-                return command, text.replace(kword, '').strip()
+                return command, text.replace(kword, '').strip().split()
         elif isinstance(kword, list):
             if text.strip().lower() in kword:
                 return command, None
@@ -138,7 +145,7 @@ def main():
         user_input = input('>>>')
         command, data = command_handler(user_input)
 
-        print(command(data))
+        print(command(*data))
 
         if command == exit:
             break
